@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スタレゾデイリー＆ウィークリータスク</title>
+　　<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
+    <style>
+        :root { --daily: #e3f2fd; --weekly: #fff3e0; --fortnightly: #f3e5f5; --success: #4caf50; }
+        body { font-family: "Helvetica Neue", Arial, sans-serif; background: #eee; line-height: 1.6; padding: 10px; color: #333; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { text-align: center; font-size: 1.4rem; border-bottom: 3px solid #333; padding-bottom: 10px; }
+        h2 { padding: 10px; border-radius: 5px; font-size: 1.1rem; margin-top: 25px; }
+        .daily-h { background: var(--daily); border-left: 5px solid #2196f3; }
+        .weekly-h { background: var(--weekly); border-left: 5px solid #ff9800; }
+        .fort-h { background: var(--fortnightly); border-left: 5px solid #9c27b0; }
+        
+        .task-item { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+        .sub-group { display: flex; flex-wrap: wrap; gap: 10px; margin-left: 34px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+        .all-clear { font-weight: bold; color: var(--success); margin-left: 10px; display: none; }
+        
+        input[type="checkbox"] { width: 22px; height: 22px; margin-right: 12px; cursor: pointer; }
+        .checked label { text-decoration: line-through; color: #888; }
+        
+        .counter-group { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-top: 20px; border: 1px solid #ddd; }
+        .counter-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px dashed #ccc; }
+        .counter-row:last-child { border-bottom: none; }
+        .indent { padding-left: 20px; font-size: 0.9rem; color: #555; }
+        .counter-row input { width: 60px; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 3px; }
+        .target-num { font-size: 0.8rem; color: #777; width: 50px; text-align: right; }
+
+        .info { font-size: 0.8rem; color: #666; text-align: right; }
+        .reset-btn { display: block; width: 100%; padding: 10px; margin-top: 30px; background: #ee5253; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📋 デイリー＆ウィークリータスク表</h1>
+    <div id="last-reset" class="info"></div>
+
+    <h2 class="daily-h">☀️ デイリー (朝5:00リセット)</h2>
+    <div id="daily-list-base"></div>
+    
+    <div class="task-item"><strong>不安定な空間</strong><span id="usk-clear" class="all-clear">OK!</span></div>
+    <div class="sub-group">
+        <label><input type="checkbox" id="usk_1" class="save-state daily-check usk-check">1回目</label>
+        <label><input type="checkbox" id="usk_2" class="save-state daily-check usk-check">2回目</label>
+    </div>
+
+    <div class="task-item"><strong>ワールドボスの鍵</strong><span id="wbk-clear" class="all-clear">OK!</span></div>
+    <div class="sub-group">
+        <label><input type="checkbox" id="wbk_1" class="save-state daily-check wbk-check">1回目</label>
+        <label><input type="checkbox" id="wbk_2" class="save-state daily-check wbk-check">2回目</label>
+    </div>
+
+    <div class="task-item"><strong>精鋭モブの鍵</strong><span id="smk-clear" class="all-clear">OK!</span></div>
+    <div class="sub-group">
+        <label><input type="checkbox" id="smk_1" class="save-state daily-check smk-check">1回目</label>
+        <label><input type="checkbox" id="smk_2" class="save-state daily-check smk-check">2回目</label>
+    </div>
+
+    <div id="daily-list-extra"></div>
+
+    <h2 class="weekly-h">🗓️ ウィークリー</h2>
+    <div id="weekly-list-special">
+        <div class="task-item"><strong>ギルドハント</strong><span id="gh-clear" class="all-clear">✨All Clear!</span></div>
+        <div class="sub-group">
+            <label><input type="checkbox" id="gh_fri" class="save-state gh-check">金</label>
+            <label><input type="checkbox" id="gh_sat" class="save-state gh-check">土</label>
+            <label><input type="checkbox" id="gh_sun" class="save-state gh-check">日</label>
+        </div>
+
+        <div class="task-item"><strong>ワールドボス討伐戦</strong><span id="wb-clear" class="all-clear">✨All Clear!</span></div>
+        <div class="sub-group">
+            <label><input type="checkbox" id="wb_1" class="save-state wb-check">1回目</label>
+            <label><input type="checkbox" id="wb_2" class="save-state wb-check">2回目</label>
+            <label><input type="checkbox" id="wb_3" class="save-state wb-check">3回目</label>
+        </div>
+    </div>
+    <div id="weekly-list-others"></div>
+
+    <div class="counter-group">
+        <strong>📦 クラフトクラス納品状況</strong>
+        <div id="delivery-list" style="margin-top:10px;"></div>
+    </div>
+
+    <h2 class="fort-h">⏳ 隔週リセット</h2>
+    <div class="task-item"><input type="checkbox" id="f1" class="save-state"> <label for="f1">レグニディスの塔</label></div>
+
+    <button class="reset-btn" onclick="if(confirm('全てのデータを消去して初期化しますか？')) { localStorage.clear(); location.reload(); }">全データリセット</button>
+</div>
+
+<script>
+const dailyBase = ["神秘ストア（素材等購入）", "ギルドチェックイン＆輸送", "ホームの納品"];
+const dailyExtra = ["フォーカスポイント(400)", "シーズンセンター(500pt)"];
+const weeklyOthers = ["開拓者報酬", "補填ショップ", "ギルド活動報酬", "ギルドダンス(金曜)", "ギルドストア", "GCストア", "友情ストア", "名声ストア"];
+
+const deliveryItems = [
+    {n:"粘土", q:160}, {n:"細砂", q:160}, {n:"清らかな湧水", q:200}, {n:"金属砂", q:80}, {n:"岩塩", q:80},
+    {n:"鉄インゴット", q:40, sub:[{n:"鉄鉱石", q:40}, {n:"石炭", q:80}]},
+    {n:"砂岩の砥石", q:40, sub:[{n:"石灰岩の原石", q:80}]},
+    {n:"小麦粉", q:45, sub:[{n:"小麦", q:135}]},
+    {n:"松材", q:40, sub:[{n:"松の原木", q:120}]},
+    {n:"謎の石の粉", q:40, sub:[{n:"謎の石の原石", q:160}, {n:"木の枝", q:200}]},
+    {n:"改良綿布", q:20, sub:[{n:"改良織り糸", q:200}, {n:"亜麻", q:67}]}
+];
+
+function setup() {
+    const dBase = document.getElementById('daily-list-base');
+    dailyBase.forEach((t, i) => {
+        dBase.innerHTML += `<div class="task-item"><input type="checkbox" id="dbase${i}" class="save-state daily-check"> <label for="dbase${i}">${t}</label></div>`;
+    });
+
+    const dExtra = document.getElementById('daily-list-extra');
+    dailyExtra.forEach((t, i) => {
+        dExtra.innerHTML += `<div class="task-item"><input type="checkbox" id="dextra${i}" class="save-state daily-check"> <label for="dextra${i}">${t}</label></div>`;
+    });
+
+    const wListO = document.getElementById('weekly-list-others');
+    weeklyOthers.forEach((t, i) => {
+        wListO.innerHTML += `<div class="task-item"><input type="checkbox" id="w${i}" class="save-state"> <label for="w${i}">${t}</label></div>`;
+    });
+
+    const delList = document.getElementById('delivery-list');
+    deliveryItems.forEach((item, i) => {
+        delList.innerHTML += createCounterRow(item, `main${i}`);
+        if(item.sub) item.sub.forEach((s, j) => delList.innerHTML += createCounterRow(s, `sub${i}_${j}`, true));
+    });
+
+    loadStates();
+    checkDailyReset();
+    refreshAllStatus();
+}
+
+function createCounterRow(item, id, isSub = false) {
+    return `<div class="counter-row ${isSub ? 'indent' : ''}"><span>${isSub ? '└ ' : ''}${item.n}</span><div><input type="number" id="val_${id}" class="save-val" value="0" min="0"><span class="target-num">/ ${item.q}</span></div></div>`;
+}
+
+function loadStates() {
+    document.querySelectorAll('.save-state').forEach(el => {
+        el.checked = localStorage.getItem(el.id) === 'true';
+        if(el.checked) el.parentElement.classList.add('checked');
+        el.onchange = () => {
+            localStorage.setItem(el.id, el.checked);
+            el.parentElement.classList.toggle('checked', el.checked);
+            refreshAllStatus();
+        };
+    });
+    document.querySelectorAll('.save-val').forEach(el => {
+        el.value = localStorage.getItem(el.id) || 0;
+        el.onchange = () => localStorage.setItem(el.id, el.value);
+    });
+}
+
+function refreshAllStatus() {
+    updateGroupStatus('gh-check', 'gh-clear');
+    updateGroupStatus('wb-check', 'wb-clear');
+    updateGroupStatus('wbk-check', 'wbk-clear');
+    updateGroupStatus('smk-check', 'smk-clear');
+    updateGroupStatus('usk-check', 'usk-clear');
+}
+
+function updateGroupStatus(checkClass, clearId) {
+    const checks = document.querySelectorAll('.' + checkClass);
+    if(checks.length === 0) return;
+    const allChecked = Array.from(checks).every(c => c.checked);
+    document.getElementById(clearId).style.display = allChecked ? 'inline' : 'none';
+}
+
+function checkDailyReset() {
+    const now = new Date();
+    const lastReset = localStorage.getItem('lastResetDate');
+    let resetTime = new Date();
+    resetTime.setHours(5, 0, 0, 0);
+    if (now < resetTime) resetTime.setDate(resetTime.getDate() - 1);
+
+    if (!lastReset || new Date(lastReset) < resetTime) {
+        document.querySelectorAll('.daily-check').forEach(cb => {
+            cb.checked = false;
+            cb.parentElement.classList.remove('checked');
+            localStorage.setItem(cb.id, false);
+        });
+        localStorage.setItem('lastResetDate', now.toISOString());
+    }
+    document.getElementById('last-reset').innerText = "最終リセット判定: " + new Date(localStorage.getItem('lastResetDate')).toLocaleString();
+}
+
+setup();
+</script>
+</body>
+</html>
